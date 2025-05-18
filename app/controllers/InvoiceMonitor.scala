@@ -766,15 +766,7 @@ class InvoiceMonitor(
         val baseSize = 125 // 125 base tx size
         val messageSize = message.length
 
-        // if this is non-standard, double the fee rate and make sure it's at least 5 sats/vbyte
-        // we double the fee rate to make sure it gets in since there is only a few pools that will accept it
-        // otherwise, add 4 sats/vbyte, just to make sure it gets in
-        val startRate = if (messageSize > 80) {
-          val value = rate.toLong * 2 max 5
-          SatoshisPerVirtualByte.fromLong(value)
-        } else {
-          rate.copy(rate.currencyUnit + Satoshis(4))
-        }
+        val startRate = SatoshisPerVirtualByte.fromLong(1L)
 
         // multiply by 10 if pre-halving, just to make sure it gets in
         val feeRate = if (height == 1_050_000 - 1) {
@@ -785,15 +777,14 @@ class InvoiceMonitor(
         }
 
         // Add fee if no tweet
-        val noTwitterFee = if (noTwitter) Satoshis(1000) else Satoshis.zero
+        val noTwitterFee = Satoshis.zero
         // add fee if non standard transaction
-        val noStdFee = if (messageSize > 80) Satoshis(10000) else Satoshis.zero
+        val noStdFee = Satoshis.zero
 
         // tx fee + app fee (1337) + twitter fee + non standard fee
         val sats =
-          // multiply by 2 just in case
-          (feeRate * 2 * (baseSize + messageSize)) +
-            Satoshis(1337) + noTwitterFee + noStdFee
+          // multiply by 1 just in case
+          (feeRate * (baseSize + messageSize)) + noTwitterFee + noStdFee
 
         (sats, feeRate)
       }
